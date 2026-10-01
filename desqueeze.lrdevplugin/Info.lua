@@ -11,5 +11,5 @@ return {
       enabledWhen = 'photosSelected',
     },
   },
-  VERSION = { major = 1, minor = 0, revision = 1 },
+  VERSION = { major = 1, minor = 1, revision = 0 },
 }
