@@ -64,6 +64,12 @@ local function askOptions(context)
   props.factor = prefs.factor or 1.33
   props.magick = prefs.magick or findMagick()
   props.stack = (prefs.stack ~= false)
+  props.setMeta = (prefs.setMeta == true)
+  props.flag = prefs.flag or 'none'
+  props.rating = prefs.rating or 'none'
+  props.color = prefs.color or 'none'
+  props.addKeyword = (prefs.addKeyword == true)
+  props.keyword = prefs.keyword or 'Desqueezed'
 
   local contents = f:column {
     bind_to_object = props,
@@ -100,11 +106,51 @@ local function askOptions(context)
       },
     },
     f:checkbox { title = 'Stack the copy with the original', value = LrView.bind 'stack' },
+    f:checkbox { title = 'Set flag / rating / color on the copy', value = LrView.bind 'setMeta' },
+    f:row {
+      visible = LrView.bind 'setMeta',
+      f:static_text { title = 'Flag:' },
+      f:popup_menu {
+        value = LrView.bind 'flag',
+        items = {
+          { title = 'None', value = 'none' },
+          { title = 'Flagged', value = 'flagged' },
+          { title = 'Rejected', value = 'rejected' },
+        },
+      },
+      f:static_text { title = 'Rating:' },
+      f:popup_menu {
+        value = LrView.bind 'rating',
+        items = {
+          { title = 'None', value = 'none' },
+          { title = '1', value = '1' }, { title = '2', value = '2' },
+          { title = '3', value = '3' }, { title = '4', value = '4' }, { title = '5', value = '5' },
+        },
+      },
+      f:static_text { title = 'Color:' },
+      f:popup_menu {
+        value = LrView.bind 'color',
+        items = {
+          { title = 'None', value = 'none' },
+          { title = 'Red', value = 'red' }, { title = 'Yellow', value = 'yellow' },
+          { title = 'Green', value = 'green' }, { title = 'Blue', value = 'blue' },
+          { title = 'Purple', value = 'purple' },
+        },
+      },
+    },
+    f:checkbox { title = 'Add keyword to the copy', value = LrView.bind 'addKeyword' },
+    f:row {
+      visible = LrView.bind 'addKeyword',
+      f:static_text { title = 'Keyword:' },
+      f:edit_field { value = LrView.bind 'keyword', width_in_chars = 20 },
+    },
   }
 
   local result = LrDialogs.presentModalDialog { title = 'Desqueeze copy', contents = contents }
   if result ~= 'ok' then return nil end
   prefs.factor, prefs.magick, prefs.stack = props.factor, props.magick, props.stack
+  prefs.setMeta, prefs.flag, prefs.rating, prefs.color = props.setMeta, props.flag, props.rating, props.color
+  prefs.addKeyword, prefs.keyword = props.addKeyword, props.keyword
   return props
 end
 
@@ -209,10 +255,21 @@ LrFunctionContext.postAsyncTaskWithContext('desqueeze', function(context)
     catalog:withWriteAccessDo('Add desqueezed copies', function()
       for _, item in ipairs(toImport) do
         local ok, err = LrTasks.pcall(function()
+          local newPhoto
           if opts.stack then
-            catalog:addPhoto(item.path, item.original, 'above')
+            newPhoto = catalog:addPhoto(item.path, item.original, 'above')
           else
-            catalog:addPhoto(item.path)
+            newPhoto = catalog:addPhoto(item.path)
+          end
+          if opts.setMeta then
+            if opts.flag == 'flagged' then newPhoto:setRawMetadata('pickStatus', 1)
+            elseif opts.flag == 'rejected' then newPhoto:setRawMetadata('pickStatus', -1) end
+            if opts.rating ~= 'none' then newPhoto:setRawMetadata('rating', tonumber(opts.rating)) end
+            if opts.color ~= 'none' then newPhoto:setRawMetadata('label', opts.color) end
+          end
+          if opts.addKeyword and opts.keyword and opts.keyword ~= '' then
+            local kw = catalog:createKeyword(opts.keyword, {}, true, nil, true)
+            newPhoto:addKeyword(kw)
           end
         end)
         if not ok then failures[#failures + 1] = item.path .. ': ' .. tostring(err) end
