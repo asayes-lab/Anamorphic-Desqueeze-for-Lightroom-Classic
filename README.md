@@ -4,20 +4,12 @@ Creates a desqueezed copy of anamorphic photos, right from Lightroom's Library m
 
 ## What it does
 
-Select one or more photos in Library Grid view, go to **Library > Plug-in Extras > Desqueeze copy...**,
-choose your squeeze factor, and the plugin will:
+This plugin creates a desqueezed copy of selected anamorphic photos, right from Lightroom Classic's
+Library menu. Pick your squeeze factor, and it generates a properly proportioned copy next to the
+original in your catalog, no exporting to another app and re-importing by hand.
 
-1. Export each photo as a 16-bit ProPhoto RGB TIFF (with your current edits baked in).
-2. Stretch it horizontally (or vertically, for portrait-oriented shots) by the chosen factor using
-   ImageMagick.
-3. Save the result next to the original as `<filename>_desqueezed.tif` and add it to your catalog,
-   optionally stacked with the original.
-4. Optionally set a flag, star rating, and/or color label on the copy, and/or add a keyword to it —
-   handy for filtering your desqueezed copies later. Both options are off by default.
-
-A rendered TIFF (rather than a DNG) is used because the stretch has to happen on rendered pixels —
-a raw file's sensor data can't be non-uniformly resized and still be a valid raw file. 16-bit TIFF
-keeps maximum editing headroom for your subsequent color and tone work.
+You can also optionally flag, rate, color-label, and/or keyword the copies it creates, making it
+easy to find and manage them afterward.
 
 ## Requirements
 
@@ -28,10 +20,13 @@ keeps maximum editing headroom for your subsequent color and tone work.
 
 ## Installation
 
-1. Download the latest release and unzip it.
-2. In Lightroom Classic, go to **File > Plug-in Manager > Add**, and select the
+1. Install **[ImageMagick](https://imagemagick.org/script/download.php)** version 7 (make sure the
+   `magick` command-line tool is included). Confirm it worked by running `magick -version` in a
+   terminal.
+2. Download the latest plugin release and unzip it.
+3. In Lightroom Classic, go to **File > Plug-in Manager > Add**, and select the
    `desqueeze.lrplugin` folder.
-3. Make sure it shows as enabled in the plugin list.
+4. Make sure it shows as enabled in the plugin list.
 
 ## Usage
 
@@ -39,8 +34,7 @@ keeps maximum editing headroom for your subsequent color and tone work.
 2. **Library > Plug-in Extras > Desqueeze copy...**
 3. Pick a squeeze factor (1.33x, 1.5x, 1.6x, 1.8x, 2.0x, or type a custom value).
 4. The first time you run it, point the ImageMagick field at your `magick` executable if it isn't
-   auto-detected. Run `magick -version` in a terminal to confirm your install, and
-   `which magick` (Mac) / `where magick` (Windows) to find its exact path.
+   auto-detected. 
 5. Choose whether to stack the copy with the original.
 6. Optionally check **Set flag / rating / color on the copy** and pick values, and/or check
    **Add keyword to the copy** and set the keyword text (defaults to "Desqueezed").
@@ -52,7 +46,8 @@ as defaults for next time.
 
 ## Known limitations
 
-- Output is always TIFF, not DNG — see "What it does" above for why.
+- Output is always TIFF, not a raw format — the stretch has to happen on rendered pixels, since raw
+  sensor data can't be non-uniformly resized and still be a valid raw file.
 - Only handles still photos, not video.
 - Squeeze direction is inferred from the photo's orientation metadata; if a stretch comes out on
   the wrong axis for an unusual orientation, please open an issue with the details.
