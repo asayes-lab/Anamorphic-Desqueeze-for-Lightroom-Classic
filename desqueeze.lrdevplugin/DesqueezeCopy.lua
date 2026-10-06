@@ -64,6 +64,8 @@ local function askOptions(context)
   props.factor = prefs.factor or 1.33
   props.magick = prefs.magick or findMagick()
   props.stack = (prefs.stack ~= false)
+  props.useSubfolder = (prefs.useSubfolder == true)
+  props.subfolder = prefs.subfolder or 'Desqueezed'
   props.setMeta = (prefs.setMeta == true)
   props.flag = prefs.flag or 'none'
   props.rating = prefs.rating or 'none'
@@ -106,6 +108,12 @@ local function askOptions(context)
       },
     },
     f:checkbox { title = 'Stack the copy with the original', value = LrView.bind 'stack' },
+    f:checkbox { title = 'Save copies in a subfolder', value = LrView.bind 'useSubfolder' },
+    f:row {
+      visible = LrView.bind 'useSubfolder',
+      f:static_text { title = 'Subfolder name:' },
+      f:edit_field { value = LrView.bind 'subfolder', width_in_chars = 20 },
+    },
     f:checkbox { title = 'Set flag / rating / color on the copy', value = LrView.bind 'setMeta' },
     f:row {
       visible = LrView.bind 'setMeta',
@@ -149,6 +157,7 @@ local function askOptions(context)
   local result = LrDialogs.presentModalDialog { title = 'Desqueeze copy', contents = contents }
   if result ~= 'ok' then return nil end
   prefs.factor, prefs.magick, prefs.stack = props.factor, props.magick, props.stack
+  prefs.useSubfolder, prefs.subfolder = props.useSubfolder, props.subfolder
   prefs.setMeta, prefs.flag, prefs.rating, prefs.color = props.setMeta, props.flag, props.rating, props.color
   prefs.addKeyword, prefs.keyword = props.addKeyword, props.keyword
   return props
@@ -225,6 +234,10 @@ LrFunctionContext.postAsyncTaskWithContext('desqueeze', function(context)
       local geometry = newW .. 'x' .. newH .. '!'
       local logPath = LrPathUtils.replaceExtension(pathOrMsg, 'log')
       local srcDir = LrPathUtils.parent(photo:getRawMetadata 'path')
+      if opts.useSubfolder and opts.subfolder and opts.subfolder ~= '' then
+        srcDir = LrPathUtils.child(srcDir, opts.subfolder)
+        LrFileUtils.createAllDirectories(srcDir)
+      end
       local base = LrPathUtils.removeExtension(LrPathUtils.leafName(photo:getRawMetadata 'path'))
       local dest = uniquePath(srcDir, base .. '_desqueezed', 'tif')
       local cmd = q(magick) .. ' ' .. q(pathOrMsg) .. ' -filter Lanczos -resize ' .. q(geometry) ..
@@ -265,7 +278,7 @@ LrFunctionContext.postAsyncTaskWithContext('desqueeze', function(context)
             if opts.flag == 'flagged' then newPhoto:setRawMetadata('pickStatus', 1)
             elseif opts.flag == 'rejected' then newPhoto:setRawMetadata('pickStatus', -1) end
             if opts.rating ~= 'none' then newPhoto:setRawMetadata('rating', tonumber(opts.rating)) end
-            if opts.color ~= 'none' then newPhoto:setRawMetadata('label', opts.color) end
+            if opts.color ~= 'none' then newPhoto:setRawMetadata('colorNameForLabel', opts.color) end
           end
           if opts.addKeyword and opts.keyword and opts.keyword ~= '' then
             local kw = catalog:createKeyword(opts.keyword, {}, true, nil, true)
