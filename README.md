@@ -5,8 +5,8 @@ Creates a desqueezed copy of anamorphic photos, right from Lightroom's Library m
 ## What it does
 
 This plugin creates a desqueezed copy of selected anamorphic photos, right from Lightroom Classic's
-Library menu. Pick your squeeze factor, and it generates a properly proportioned copy next to the
-original in your catalog, no exporting to another app and re-importing by hand.
+Library menu. Pick your squeeze factor, and it generates a properly proportioned TIFF copy next to
+the original in your catalog, no exporting to another app and re-importing by hand.
 
 You can also optionally flag, rate, color-label, and/or keyword the copies it creates, making it
 easy to find and manage them afterward.
@@ -31,28 +31,29 @@ easy to find and manage them afterward.
 ## Usage
 
 1. Select one or more photos in Library Grid view.
-2. **Library > Plug-in Extras > Desqueeze copy...**
+2. **Library > Plug-in Extras > Desqueeze to TIFF copy...**
 3. Pick a squeeze factor (1.33x, 1.5x, 1.6x, 1.8x, 2.0x, or type a custom value).
 4. The first time you run it, point the ImageMagick field at your `magick` executable if it isn't
-   auto-detected. 
+   auto-detected. Run `magick -version` in a terminal to confirm your install, and
+   `which magick` (Mac) / `where magick` (Windows) to find its exact path.
 5. Choose whether to stack the copy with the original.
-6. Optionally check **Set flag / rating / color on the copy** and pick values, and/or check
+6. Optionally check **Save copies in a subfolder** and set a folder name (defaults to
+   "Desqueezed") to keep copies out of the main folder instead of placing them next to
+   the original.
+7. Optionally check **Set flag / rating / color on the copy** and pick values, and/or check
    **Add keyword to the copy** and set the keyword text (defaults to "Desqueezed").
-7. Click OK. The desqueezed TIFF appears in your catalog next to the original, with any flag,
-   rating, color label, and keyword applied as chosen.
+8. Click OK. The desqueezed TIFF appears in your catalog, with any flag, rating, color label,
+   and keyword applied as chosen.
 
 All settings in the dialog — including the flag/rating/color and keyword options — are remembered
 as defaults for next time.
 
 ## Known limitations
 
-- Output is always TIFF, not a raw format — the stretch has to happen on rendered pixels, since raw
-  sensor data can't be non-uniformly resized and still be a valid raw file.
+- Output is always TIFF
 - Only handles still photos, not video.
 - Squeeze direction is inferred from the photo's orientation metadata; if a stretch comes out on
   the wrong axis for an unusual orientation, please open an issue with the details.
-- The color label option writes the default English label names (red, yellow, green, blue, purple).
-  If you've customized your color label names in Lightroom's preferences, this may not map correctly.
 
 ## License
 
